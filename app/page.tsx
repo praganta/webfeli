@@ -1,20 +1,18 @@
 "use client";
 
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import FinalHeart from "./components/FinalHeart";
 
 type Scene = {
   title: string;
   body: string;
-  photo: string;   // path di /public
+  photo: string; // path di /public
   caption: string; // caption buat foto
 };
 
 export default function Page() {
   const girlName = "Felicia Audrey Pramana";
 
-  // 5 foto: feli1.jpeg ... feli5.jpeg
-  // saran: feli1 foto dia sendiri, sisanya foto kalian berdua
   const scenes: Scene[] = useMemo(
     () => [
       {
@@ -48,7 +46,7 @@ export default function Page() {
       {
         title: "Yang paling penting...",
         body:
-          `Aku sayang kamu, bukan karena momen tertentu. Tapi karena kamu apa adanya. Dan aku bersyukur bisa bareng kamu selalu.`,
+          "Aku sayang kamu, bukan karena momen tertentu. Tapi karena kamu apa adanya. Dan aku bersyukur bisa bareng kamu selalu.",
         photo: "/feli5.jpeg",
         caption: "Kalau suatu hari kamu ragu, balik ke sini ya. felii tetep dihati aga selalu yaa.",
       },
@@ -68,6 +66,15 @@ export default function Page() {
   const openingRef = useRef(false);
   const current = scenes[sceneIndex];
 
+  // ✅ responsive switch
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 720);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   function openEnvelope() {
     if (openingRef.current) return;
     openingRef.current = true;
@@ -75,7 +82,6 @@ export default function Page() {
     window.setTimeout(() => setPhase(2), 900);
   }
 
-  // ✅ tambahan penting: buat FinalHeart balik ke awal
   function restartToEnvelope() {
     openingRef.current = false;
     setSceneIndex(0);
@@ -86,7 +92,7 @@ export default function Page() {
     if (phase !== 2) return;
 
     if (sceneIndex >= total - 1) {
-      setPhase(3); // ⬅️ MASUK HALAMAN FINAL
+      setPhase(3);
       return;
     }
     setSceneIndex((i) => i + 1);
@@ -99,8 +105,9 @@ export default function Page() {
 
   const stageStyle: React.CSSProperties = {
     width: "min(860px, 92vw)",
-    minHeight: "min(86vh, 780px)",
-    borderRadius: 26,
+    maxWidth: "100%",
+    minHeight: isMobile ? "92vh" : "min(86vh, 780px)",
+    borderRadius: isMobile ? 22 : 26,
     border: "1px solid rgba(255,255,255,0.10)",
     background: "rgba(10,12,20,0.55)",
     backdropFilter: "blur(14px)",
@@ -113,7 +120,7 @@ export default function Page() {
     borderRadius: 22,
     border: "1px solid rgba(255,255,255,0.12)",
     background: "rgba(255,255,255,0.04)",
-    padding: 18,
+    padding: isMobile ? 14 : 18,
     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07)",
   };
 
@@ -128,13 +135,14 @@ export default function Page() {
     <main
       style={{
         minHeight: "100vh",
+        maxWidth: "100vw",
         ...bg,
         color: "rgba(255,255,255,0.92)",
         fontFamily:
           'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"',
         display: "grid",
         placeItems: "center",
-        padding: 18,
+        padding: isMobile ? 12 : 18,
         overflow: "hidden",
       }}
     >
@@ -174,8 +182,14 @@ export default function Page() {
           }}
         >
           {/* CENTER */}
-          <div style={{ padding: "26px 18px 10px", display: "grid", placeItems: "center" }}>
-            {/* ✅ tambahan: FINAL PAGE */}
+          <div
+            style={{
+              padding: isMobile ? "18px 14px 10px" : "26px 18px 10px",
+              display: "grid",
+              placeItems: "center",
+            }}
+          >
+            {/* FINAL PAGE */}
             {phase === 3 && <FinalHeart onRestart={restartToEnvelope} />}
 
             {/* ENVELOPE */}
@@ -185,9 +199,9 @@ export default function Page() {
                 role={phase === 0 ? "button" : undefined}
                 aria-label={phase === 0 ? "Open letter" : undefined}
                 style={{
-                  width: "min(580px, 90vw)",
+                  width: "min(580px, 92vw)",
                   aspectRatio: "16/11",
-                  borderRadius: 22,
+                  borderRadius: isMobile ? 18 : 22,
                   position: "relative",
                   overflow: "hidden",
                   cursor: phase === 0 ? "pointer" : "default",
@@ -232,7 +246,7 @@ export default function Page() {
                   style={{
                     position: "absolute",
                     inset: 18,
-                    borderRadius: 18,
+                    borderRadius: isMobile ? 16 : 18,
                     border: "1px solid rgba(255,255,255,0.14)",
                     background: "rgba(0,0,0,0.18)",
                     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.10)",
@@ -242,10 +256,10 @@ export default function Page() {
                 <div
                   style={{
                     position: "absolute",
-                    right: 26,
-                    top: 32,
-                    width: 64,
-                    height: 78,
+                    right: isMobile ? 18 : 26,
+                    top: isMobile ? 26 : 32,
+                    width: isMobile ? 56 : 64,
+                    height: isMobile ? 70 : 78,
                     borderRadius: 12,
                     border: "1px solid rgba(255,255,255,0.14)",
                     background:
@@ -262,9 +276,9 @@ export default function Page() {
                 <div
                   style={{
                     position: "absolute",
-                    left: 36,
-                    top: 46,
-                    width: "58%",
+                    left: isMobile ? 18 : 36,
+                    top: isMobile ? 36 : 46,
+                    width: isMobile ? "68%" : "58%",
                     color: "rgba(255,255,255,0.80)",
                     fontSize: 12,
                     letterSpacing: 0.2,
@@ -331,22 +345,22 @@ export default function Page() {
 
             {/* LETTER */}
             {phase === 2 && (
-              <div style={{ width: "min(820px, 92vw)", display: "grid", gap: 16 }}>
-                {/* PAGE 1: special header + badge */}
+              <div style={{ width: "min(820px, 92vw)", display: "grid", gap: isMobile ? 12 : 16 }}>
+                {/* PAGE 1 */}
                 {sceneIndex === 0 ? (
                   <>
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "120px 1fr",
-                        gap: 14,
+                        gridTemplateColumns: isMobile ? "92px 1fr" : "120px 1fr",
+                        gap: isMobile ? 12 : 14,
                         alignItems: "center",
                       }}
                     >
                       <div
                         style={{
-                          width: 120,
-                          height: 120,
+                          width: isMobile ? 92 : 120,
+                          height: isMobile ? 92 : 120,
                           borderRadius: 22,
                           border: "1px solid rgba(255,255,255,0.14)",
                           background:
@@ -397,7 +411,14 @@ export default function Page() {
                           <span aria-hidden>💗</span>
                         </div>
 
-                        <h1 style={{ margin: 0, fontSize: 26, letterSpacing: -0.5, lineHeight: 1.15 }}>
+                        <h1
+                          style={{
+                            margin: 0,
+                            fontSize: isMobile ? 20 : 26,
+                            letterSpacing: -0.5,
+                            lineHeight: 1.15,
+                          }}
+                        >
                           {current.title}
                         </h1>
                         <div style={captionStyle}>{current.caption}</div>
@@ -405,18 +426,18 @@ export default function Page() {
                     </div>
 
                     <div style={letterCardStyle}>
-                      <p style={{ margin: 0, lineHeight: 1.95, fontSize: 15.5, color: "rgba(255,255,255,0.86)" }}>
+                      <p style={{ margin: 0, lineHeight: 1.95, fontSize: isMobile ? 14.6 : 15.5, color: "rgba(255,255,255,0.86)" }}>
                         {current.body}
                       </p>
                     </div>
                   </>
                 ) : (
-                  // PAGES 2..N: text beside photo (beda layout)
+                  // PAGES 2..N (responsive)
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "260px 1fr",
-                      gap: 18,
+                      gridTemplateColumns: isMobile ? "1fr" : "260px 1fr",
+                      gap: isMobile ? 14 : 18,
                       alignItems: "start",
                     }}
                   >
@@ -424,7 +445,7 @@ export default function Page() {
                       <div
                         style={{
                           width: "100%",
-                          height: 320,
+                          height: isMobile ? 240 : 320,
                           borderRadius: 22,
                           border: "1px solid rgba(255,255,255,0.14)",
                           background:
@@ -454,12 +475,19 @@ export default function Page() {
                     </div>
 
                     <div style={{ display: "grid", gap: 12 }}>
-                      <h2 style={{ margin: 0, fontSize: 20, letterSpacing: -0.3, lineHeight: 1.2 }}>
+                      <h2
+                        style={{
+                          margin: 0,
+                          fontSize: isMobile ? 18 : 20,
+                          letterSpacing: -0.3,
+                          lineHeight: 1.2,
+                        }}
+                      >
                         {current.title}
                       </h2>
 
                       <div style={letterCardStyle}>
-                        <p style={{ margin: 0, lineHeight: 1.95, fontSize: 15.5, color: "rgba(255,255,255,0.86)" }}>
+                        <p style={{ margin: 0, lineHeight: 1.95, fontSize: isMobile ? 14.6 : 15.5, color: "rgba(255,255,255,0.86)" }}>
                           {current.body}
                         </p>
                       </div>
@@ -494,7 +522,7 @@ export default function Page() {
           {/* BOTTOM BAR */}
           <div
             style={{
-              padding: "14px 16px 16px",
+              padding: isMobile ? "12px 14px 14px" : "14px 16px 16px",
               borderTop: "1px solid rgba(255,255,255,0.08)",
               display: "flex",
               justifyContent: "flex-end",
@@ -502,7 +530,7 @@ export default function Page() {
               gap: 12,
               position: "relative",
               zIndex: 3,
-              minHeight: 84,
+              minHeight: isMobile ? 74 : 84,
             }}
           >
             {/* tombol muncul hanya saat phase 2 */}
