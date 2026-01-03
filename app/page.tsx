@@ -66,7 +66,7 @@ export default function Page() {
 
   const current = scenes[sceneIndex];
 
-  // ✅ responsive (mobile < 720px)
+  // responsive (mobile < 720)
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 720);
@@ -75,7 +75,7 @@ export default function Page() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // ✅ transition state for scenes
+  // transition state for scenes
   const [isSwitching, setIsSwitching] = useState(false);
 
   function openEnvelope() {
@@ -96,7 +96,6 @@ export default function Page() {
     if (isSwitching) return;
 
     if (sceneIndex >= total - 1) {
-      // nice fade before final
       setIsSwitching(true);
       window.setTimeout(() => {
         setPhase(3);
@@ -105,7 +104,6 @@ export default function Page() {
       return;
     }
 
-    // fade/slide transition
     setIsSwitching(true);
     window.setTimeout(() => {
       setSceneIndex((i) => i + 1);
@@ -118,11 +116,8 @@ export default function Page() {
       "radial-gradient(900px 520px at 20% 10%, rgba(255,77,141,0.18) 0%, transparent 55%), radial-gradient(820px 520px at 80% 18%, rgba(138,180,255,0.16) 0%, transparent 55%), radial-gradient(900px 700px at 50% 120%, rgba(168,85,247,0.10) 0%, transparent 55%), linear-gradient(180deg, #05060a 0%, #070813 40%, #04050a 100%)",
   } as const;
 
-  // ✅ iPhone-safe height: use 100dvh when available, fallback to 100vh
-  const pageMinHeight = "100dvh";
-
   const stageStyle: React.CSSProperties = {
-    width: "min(860px, 92vw)",
+    width: "min(860px, 94vw)",
     maxWidth: "100%",
     borderRadius: isMobile ? 22 : 26,
     border: "1px solid rgba(255,255,255,0.10)",
@@ -130,6 +125,7 @@ export default function Page() {
     backdropFilter: "blur(14px)",
     boxShadow: "0 26px 90px rgba(0,0,0,0.55)",
     overflow: "hidden",
+    overflowX: "hidden",
     position: "relative",
   };
 
@@ -148,10 +144,14 @@ export default function Page() {
     color: "rgba(255,255,255,0.62)",
   };
 
+  const contentPadX = isMobile ? 16 : 18;
+  const contentPadTop = isMobile ? 18 : 26;
+  const contentPadBottom = 10;
+
   return (
     <main
       style={{
-        minHeight: pageMinHeight,
+        minHeight: "100dvh",
         ...bg,
         color: "rgba(255,255,255,0.92)",
         fontFamily:
@@ -162,6 +162,11 @@ export default function Page() {
         overflowX: "hidden",
       }}
     >
+      {/* IMPORTANT: border-box to prevent “nabrak kanan” */}
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; }
+      `}</style>
+
       {/* subtle grain */}
       <div
         aria-hidden
@@ -188,14 +193,23 @@ export default function Page() {
           }}
         />
 
-        {/* ✅ switch to flex column to avoid iOS grid empty-space */}
-        <div style={{ position: "relative", zIndex: 2, height: "100%", display: "flex", flexDirection: "column" }}>
-          {/* CENTER (content) */}
-          <div style={{ padding: isMobile ? "18px 14px 10px" : "26px 18px 10px" }}>
+        {/* flex column avoids iOS empty-space + keeps bottom bar stable */}
+        <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column" }}>
+          {/* CENTER */}
+          <div
+            style={{
+              padding: `${contentPadTop}px ${contentPadX}px ${contentPadBottom}px`,
+              width: "100%",
+              display: "block",
+            }}
+          >
             {/* FINAL */}
             {phase === 3 && (
               <div
                 style={{
+                  width: "100%",
+                  maxWidth: 820,
+                  marginInline: "auto",
                   opacity: isSwitching ? 0 : 1,
                   transform: isSwitching ? "translateY(6px)" : "translateY(0)",
                   transition: "opacity 260ms ease, transform 260ms ease",
@@ -212,7 +226,8 @@ export default function Page() {
                 role={phase === 0 ? "button" : undefined}
                 aria-label={phase === 0 ? "Open letter" : undefined}
                 style={{
-                  width: "min(580px, 92vw)",
+                  width: "100%",
+                  maxWidth: 580,
                   marginInline: "auto",
                   aspectRatio: "16/11",
                   borderRadius: isMobile ? 18 : 22,
@@ -317,9 +332,7 @@ export default function Page() {
                     height: "64%",
                     transformOrigin: "top center",
                     transform:
-                      phase === 1
-                        ? "perspective(900px) rotateX(72deg)"
-                        : "perspective(900px) rotateX(0deg)",
+                      phase === 1 ? "perspective(900px) rotateX(72deg)" : "perspective(900px) rotateX(0deg)",
                     transition: "transform 900ms cubic-bezier(.2,.9,.2,1)",
                     background:
                       "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02))",
@@ -361,7 +374,8 @@ export default function Page() {
             {phase === 2 && (
               <div
                 style={{
-                  width: "min(820px, 92vw)",
+                  width: "100%",
+                  maxWidth: 820,
                   marginInline: "auto",
                   display: "grid",
                   gap: isMobile ? 12 : 16,
@@ -371,7 +385,6 @@ export default function Page() {
                   transition: "opacity 240ms ease, transform 240ms ease",
                 }}
               >
-                {/* PAGE 1: special header */}
                 {sceneIndex === 0 ? (
                   <>
                     <div
@@ -400,16 +413,6 @@ export default function Page() {
                           alt={girlName}
                           onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
                           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                        />
-                        <div
-                          aria-hidden
-                          style={{
-                            position: "absolute",
-                            inset: 0,
-                            background:
-                              "radial-gradient(80px 80px at 20% 20%, rgba(255,255,255,0.18), transparent 60%)",
-                            pointerEvents: "none",
-                          }}
                         />
                       </div>
 
@@ -449,22 +452,29 @@ export default function Page() {
                     </div>
 
                     <div style={letterCardStyle}>
-                      <p style={{ margin: 0, lineHeight: 1.95, fontSize: isMobile ? 14.6 : 15.5, color: "rgba(255,255,255,0.86)" }}>
+                      <p
+                        style={{
+                          margin: 0,
+                          lineHeight: 1.95,
+                          fontSize: isMobile ? 14.6 : 15.5,
+                          color: "rgba(255,255,255,0.86)",
+                        }}
+                      >
                         {current.body}
                       </p>
                     </div>
                   </>
                 ) : (
-                  // PAGES 2..N responsive layout
                   <div
                     style={{
                       display: "grid",
                       gridTemplateColumns: isMobile ? "1fr" : "260px 1fr",
                       gap: isMobile ? 14 : 18,
                       alignItems: "start",
+                      width: "100%",
                     }}
                   >
-                    <div>
+                    <div style={{ width: "100%" }}>
                       <div
                         style={{
                           width: "100%",
@@ -497,7 +507,7 @@ export default function Page() {
                       <div style={captionStyle}>{current.caption}</div>
                     </div>
 
-                    <div style={{ display: "grid", gap: 12 }}>
+                    <div style={{ display: "grid", gap: 12, width: "100%" }}>
                       <h2
                         style={{
                           margin: 0,
@@ -510,7 +520,14 @@ export default function Page() {
                       </h2>
 
                       <div style={letterCardStyle}>
-                        <p style={{ margin: 0, lineHeight: 1.95, fontSize: isMobile ? 14.6 : 15.5, color: "rgba(255,255,255,0.86)" }}>
+                        <p
+                          style={{
+                            margin: 0,
+                            lineHeight: 1.95,
+                            fontSize: isMobile ? 14.6 : 15.5,
+                            color: "rgba(255,255,255,0.86)",
+                          }}
+                        >
                           {current.body}
                         </p>
                       </div>
